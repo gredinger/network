@@ -1,8 +1,14 @@
 package network_test
 
+import (
+	"fmt"
+	"testing"
+
+	"github.com/gredinger/network"
+)
 
 //borrowed from work, anonymized
-type shMacAddressOut string = `
+var shMacAddressOut = `
           Mac Address Table
 -------------------------------------------
 
@@ -261,9 +267,20 @@ Vlan    Mac Address       Type        Ports
   40    706b.29c6.2808    DYNAMIC     Gi1/1/1
   50    9c7b.2f5a.2122    DYNAMIC     Gi1/1/1
   50    b6d5.1402.2bab    DYNAMIC     Gi1/1/1
-  50    e8eb.1bcd.13a6    DYNAMIC     Gi1/1/1`
+  50    e8eb.1bcd.13a6    DYNAMIC     Gi1/1/1
+  `
 
-
-  func ValidateParse(*t testing.2) {
-	  
-  }
+func TestParseMAT(t *testing.T) {
+	ports := network.ParseMAT(shMacAddressOut)
+	fmt.Println(ports)
+	if len(ports) < 20 {
+		t.Fail()
+	}
+	for _, x := range ports {
+		if x.Name == "Gi1/1/1" {
+			if len(x.Entries) < 20 {
+				t.Fail()
+			}
+		}
+	}
+}
