@@ -7,6 +7,13 @@ import (
 	"github.com/gredinger/network"
 )
 
+
+var sessionStart = `
+{{BANNER}}
+  End of keyboard-interactive prompts from server
+{{HOSTNAME}}>
+`
+
 //borrowed from work, anonymized
 var shMacAddressOut = `
           Mac Address Table
@@ -271,7 +278,9 @@ Vlan    Mac Address       Type        Ports
   `
 
 func TestParseMAT(t *testing.T) {
-	ports := network.ParseMAT(shMacAddressOut)
+  sw := network.Switch{}
+	sw.ParseMAT(shMacAddressOut)
+  ports := sw.Ports
 	fmt.Println(ports)
 	if len(ports) < 20 {
 		t.Fail()

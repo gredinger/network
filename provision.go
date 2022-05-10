@@ -10,6 +10,7 @@ type Switch struct {
 	Username string
 	Password string
 	Ports    []Port
+	SSHConfig *ssh.ClientConfig
 }
 
 func (s *Switch) addEntry(name, mac, id string) {
@@ -50,15 +51,13 @@ var cisMAC = `.{4}\..{4}\..{4}`
 var cisInt = `(?m:\b\w{0,4}\/.*$)`
 
 //parseMAT will return the Mac address table as  list of Ports with their entries per port
-func ParseMAT(in string) []Port {
+func (sw *Switch) ParseMAT(in string) {
 	// regex id (start of string, whitespace)
 	idr, _ := regexp.Compile(cisID)
 	// regex string mac address
 	addr, _ := regexp.Compile(cisMAC)
 	// regex string port
 	portR, _ := regexp.Compile(cisInt)
-
-	sw := Switch{}
 
 	vlan := idr.FindAllString(in, -1)
 	add := addr.FindAllString(in, -1)[20:]
@@ -71,5 +70,32 @@ func ParseMAT(in string) []Port {
 			sw.addEntry(port[i], add[i], strings.Trim(vlan[i], " "))
 		}
 	}
-	return sw.Ports
+}
+
+func (s *Switch) LoadConfiguration() {
+	s.SSHConfig = &ssh.ClientConfig{
+		User: s.Username,
+		Auth: []ssh.AuthMethod{
+			ssh.Password(s.Password)
+		},
+		HostKeyCallback: ClientConfig.InsecureIgnoreHostKey,
+		Timeout: (time.Seconds * 60) // 1 min timeout
+	}
+}
+
+func (s *Switch) Execute() {
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:22", s.Hostname), s.SSHConfig)
+	if err != nil {
+		log.Fatal("Failed to connect to ssh")
+	}
+	defer client.Close()
+
+	session, err := conn.NewSession()
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer session.Close()
+
+	
 }
